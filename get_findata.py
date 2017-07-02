@@ -126,13 +126,18 @@ class CompanyData:
         
         # find the index of the table that contains the input pattern
         table_idx = 0
+        pattern_found = False
         if pattern is not None:
             for idx in range(1, int(len(table_list)/table_group_cnt)):
                 name_table = table_list[table_group_cnt*idx + table_name_idx]
-                pattern_found = False
+                if re.search(pattern, name_table.text) is not None:
+                    table_idx = idx
+                    pattern_found = True
+                    break
+                # if the name is not written in the table
                 name_p = name_table.find_previous_sibling('p')
                 name_p_list = [name_p]
-                for _ in range(3):
+                for _ in range(2):
                     name_p = name_p.find_previous('p')
                     name_p_list.append(name_p)
                 for name_p in name_p_list:
@@ -247,7 +252,6 @@ class CompanyData:
             inc_state_unit = self.get_table_unit(fin_page_tables[table_group_cnt*table_idx
                                                                 + table_head_idx])
             inc_state_source = fin_page_tables[table_group_cnt*table_idx + table_main_idx]
-    
             # cash statement table index is unknown so needs to be fetched
             cash_state_pattern = re.compile(r'현.*?금.*?표')
             table_indices = self.get_target_table_idx(fin_page_tables, cash_state_pattern)
@@ -1246,8 +1250,7 @@ class CompanyData:
                 noncurr_asset_list.append(asset[1])
                 total_asset_list.append(asset[2])
             if self.debug:
-                print("processed data - curr_asset: %s, noncurr_asset: %s,\
-                      total_asset: %s" % asset)
+                print("processed data - curr_asset: %s, noncurr_asset: %s, total_asset: %s" % asset)
     
             liabilities = self.dart_crawl_target(rcp_no, fin_state_source,
                                                  fin_state_unit, "liabilities")
@@ -1260,8 +1263,7 @@ class CompanyData:
                 noncurr_liab_list.append(liabilities[1])
                 total_liab_list.append(liabilities[2])
             if self.debug:
-                print("processed data - curr_liabilities: %s,\
-                noncurr_liabilities: %s, total_liabilities: %s" % liabilities)
+                print("processed data - curr_liabilities: %s, noncurr_liabilities: %s, total_liabilities: %s" % liabilities)
             
             equity = self.dart_crawl_target(rcp_no, fin_state_source,
                                             fin_state_unit, "equity")
@@ -1343,7 +1345,7 @@ if __name__ == "__main__":
     read_fin_csv = vars(parser.parse_args())["read"]
     
     company_data = CompanyData("002140")
-    debug_list = ['20050812000878']
+    debug_list = ['20161111000236']
     company_fin_data = company_data.set_fin_data(read_fin_csv=read_fin_csv,
                                     debug=debug_mode, debug_list=debug_list)
     if not read_fin_csv:
